@@ -1,0 +1,66 @@
+version: '3'
+
+services:
+  webapp: &webapp
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: wa01
+    command: bash -c "python manage.py makemigrations && python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./app:/app
+      - media:/django-copy3/project/media/
+      - media2:/django-copy3/project/media/
+    links:
+      - redis:redis
+    depends_on:
+      - redis
+      - db
+
+  db:
+      image: postgres:9.4
+      container_name: db01
+      environment:
+        - 'POSTGRES_DB: postgres'
+        - 'POSTGRES_USER: postgres'
+        - 'POSTGRES_PASS: postgres'
+      volumes:
+        - my_dbdata:/var/lib/postgresql/data
+      ports:
+              - "5433:5432"
+
+  redis:
+    image: "redis:alpine"
+    container_name: rd01
+
+  celery:
+    build: .
+    volumes:
+      - .:/django-copy3
+    container_name: cl01
+    environment:
+        - DJANGO_SETTINGS_MODULE=config.settings.production
+    command: celery -A config worker -l info
+    links:
+      - redis:redis
+    depends_on: 
+      - redis
+
+  celery_worker:
+    <<: *webapp
+    container_name: cl02
+    command: celery -A config worker -l info
+    ports: []
+    links:
+      - redis:redis
+    depends_on: 
+      - redis
+
+
+volumes:
+  redis:
+  my_dbdata:
+  media: {}
+  media2:
