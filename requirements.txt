@@ -24,7 +24,7 @@ jsonfield==2.0.2
 kiwisolver==1.0.1
 kombu==4.2.0
 netifaces==0.10.9
-numpy==1.16.2
+numpy==1.22.0
 Pillow==5.4.1
 ply==3.11
 psycopg2==2.7.7
